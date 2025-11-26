@@ -16,14 +16,14 @@ public class Main {
         String username = args[0];
         String password = args[1];
 
-        Scanner myScanner = new Scanner(System.in);
-        try {
+        try (Scanner myScanner = new Scanner(System.in)) {
             boolean isDone = false;
 
             while (!isDone) {
                 System.out.println("\nWhat do you want to do?");
                 System.out.println("  1) Display all products");
                 System.out.println("  2) Display all customers");
+                System.out.println("  3) Display all categories");
                 System.out.println("  0) Exit");
                 System.out.println("Select an option:");
                 String userInput = myScanner.nextLine().trim();
@@ -37,6 +37,8 @@ public class Main {
                     case 2:
                         displayAllCustomers(username, password);
                         break;
+                    case 3:
+                        displayAllCategories(username, password);
                     case 0:
                         isDone = true;
                         break;
@@ -48,76 +50,48 @@ public class Main {
         } catch (Exception ex) {
             System.out.println("Please check your inputs!");
             System.out.println(ex.getMessage());
-        } finally {
-            myScanner.close();
         }
     }
 
-    public static void displayAllProducts(String username, String password) {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet results = null;
+    public static void displayAllCategories(String username, String password) {
 
+    }
+
+    public static void displayAllProducts(String username, String password) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/northwind",
-                    username,
-                    password
-            );
 
             String query = """
                     SELECT ProductID, ProductName, UnitPrice, UnitsInStock
                     FROM products
                     """;
 
-            preparedStatement = connection.prepareStatement(query);
+            try (Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/northwind",
+                    username,
+                    password
+                    );
 
-            results = preparedStatement.executeQuery();
+                 PreparedStatement preparedStatement = connection.prepareStatement(query);
 
-            System.out.println("\nID  " + " Name" + " ".repeat(37) + "Price   " + "Stock");
-            System.out.println("---- " + "-".repeat(40) + " -------" + " -----");
+                 ResultSet results = preparedStatement.executeQuery()
+            ) {
+                System.out.println("\nID  " + " Name" + " ".repeat(37) + "Price   " + "Stock");
+                System.out.println("---- " + "-".repeat(40) + " -------" + " -----");
 
-            while (results.next()) {
-                int productID = results.getInt(1);
-                String productName = results.getString(2);
-                double productPrice = results.getDouble(3);
-                int productStock = results.getInt(4);
+                while (results.next()) {
+                    int productID = results.getInt(1);
+                    String productName = results.getString(2);
+                    double productPrice = results.getDouble(3);
+                    int productStock = results.getInt(4);
 
-                System.out.printf("%-4d %-40s %-7.2f %-5d\n",
-                        productID, productName, productPrice, productStock);
+                    System.out.printf("%-4d %-40s %-7.2f %-5d\n",
+                            productID, productName, productPrice, productStock);
+                }
             }
         } catch (Exception ex) {
-            System.out.println("Error occur!");
+            System.out.println("Error occurred!");
             System.out.println(ex.getMessage());
-        } finally {
-            if (results != null) {
-                try {
-                    results.close();
-                } catch (Exception ex) {
-                    System.out.println("Error closing 'results' that was opened");
-                    System.out.println(ex.getMessage());
-                }
-            }
-
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (Exception ex) {
-                    System.out.println("Error closing 'preparedStatement' that was opened");
-                    System.out.println(ex.getMessage());
-                }
-            }
-
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (Exception ex) {
-                    System.out.println("Error closing an connection that was opened");
-                    System.out.println(ex.getMessage());
-                }
-            }
         }
     }
 
