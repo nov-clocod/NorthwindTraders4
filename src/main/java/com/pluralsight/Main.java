@@ -39,6 +39,10 @@ public class Main {
                         break;
                     case 3:
                         displayAllCategories(username, password);
+                        System.out.println("\nChoose a categoryID to display products in that category");
+                        String userInputCategoryID = myScanner.nextLine().trim();
+
+                        displayCategoryProducts(username, password, userInputCategoryID);
                     case 0:
                         isDone = true;
                         break;
@@ -49,6 +53,48 @@ public class Main {
             }
         } catch (Exception ex) {
             System.out.println("Please check your inputs!");
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public static void displayCategoryProducts(String username, String password, String categoryID) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            String query = """
+                    SELECT ProductID, ProductName, UnitPrice, UnitsInStock
+                    FROM products
+                    WHERE CategoryID = ?
+                    """;
+
+            try (Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/northwind",
+                    username,
+                    password
+                    );
+
+                 PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ) {
+                preparedStatement.setString(1, categoryID);
+
+                try (ResultSet results = preparedStatement.executeQuery())
+                {
+                    System.out.println("\nID  " + " Name" + " ".repeat(37) + "Price   " + "Stock");
+                    System.out.println("---- " + "-".repeat(40) + " -------" + " -----");
+
+                    while (results.next()) {
+                        int productID = results.getInt(1);
+                        String productName = results.getString(2);
+                        double productPrice = results.getDouble(3);
+                        int productStock = results.getInt(4);
+
+                        System.out.printf("%-4d %-40s %-7.2f %-5d\n",
+                                productID, productName, productPrice, productStock);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println("Error occurred!");
             System.out.println(ex.getMessage());
         }
     }
