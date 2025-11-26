@@ -54,7 +54,39 @@ public class Main {
     }
 
     public static void displayAllCategories(String username, String password) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
 
+            String query = """
+                    SELECT CategoryID, CategoryName
+                    FROM categories
+                    """;
+
+            try (Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/northwind",
+                    username,
+                    password
+                    );
+
+                 PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+                 ResultSet results = preparedStatement.executeQuery()
+            ) {
+                System.out.println("\nCategoryID " + "Category" + " ".repeat(8));
+                System.out.println("---------- " + "-".repeat(15));
+
+                while (results.next()) {
+                    int categoryID = results.getInt(1);
+                    String categoryName = results.getString(2);
+
+                    System.out.printf("%-10d %-15s\n",
+                            categoryID, categoryName);
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println("Error occurred!");
+            System.out.println(ex.getMessage());
+        }
     }
 
     public static void displayAllProducts(String username, String password) {
