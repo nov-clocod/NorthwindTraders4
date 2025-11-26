@@ -96,17 +96,8 @@ public class Main {
     }
 
     public static void displayAllCustomers(String username, String password) {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet results = null;
-
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/northwind",
-                    username,
-                    password);
 
             String query = """
                     SELECT ContactName, CompanyName, City, Country, Phone
@@ -114,61 +105,41 @@ public class Main {
                     ORDER BY Country
                     """;
 
-            preparedStatement = connection.prepareStatement(query);
+            try (Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/northwind",
+                    username,
+                    password
+                    );
 
-            results = preparedStatement.executeQuery();
+                 PreparedStatement preparedStatement = connection.prepareStatement(query);
 
-            System.out.println("\nContact Name" + " ".repeat(19)
-                    + "Company" + " ".repeat(34)
-                    + "City" + " ".repeat(12)
-                    + "Country" + " ".repeat(9)
-                    + "Phone" + " ".repeat(7));
-            System.out.println("-".repeat(30) + " "
-                    + "-".repeat(40) + " "
-                    + "-".repeat(15) + " "
-                    + "-".repeat(15) + " "
-                    + "-".repeat(12));
+                 ResultSet results = preparedStatement.executeQuery()
+            ) {
+                System.out.println("\nContact Name" + " ".repeat(19)
+                        + "Company" + " ".repeat(34)
+                        + "City" + " ".repeat(12)
+                        + "Country" + " ".repeat(9)
+                        + "Phone" + " ".repeat(7));
+                System.out.println("-".repeat(30) + " "
+                        + "-".repeat(40) + " "
+                        + "-".repeat(15) + " "
+                        + "-".repeat(15) + " "
+                        + "-".repeat(12));
 
-            while (results.next()) {
-                String contactName = results.getString(1);
-                String companyName = results.getString(2);
-                String city = results.getString(3);
-                String country = results.getString(4);
-                String phone = results.getString(5);
+                while (results.next()) {
+                    String contactName = results.getString(1);
+                    String companyName = results.getString(2);
+                    String city = results.getString(3);
+                    String country = results.getString(4);
+                    String phone = results.getString(5);
 
-                System.out.printf("%-30s %-40s %-15s %-15s %-12s\n",
-                        contactName, companyName, city, country, phone);
+                    System.out.printf("%-30s %-40s %-15s %-15s %-12s\n",
+                            contactName, companyName, city, country, phone);
+                }
             }
         } catch (Exception ex) {
             System.out.println("Error occur!");
             System.out.println(ex.getMessage());
-        } finally {
-            if (results != null) {
-                try {
-                    results.close();
-                } catch (Exception ex) {
-                    System.out.println("Error closing 'results' that was opened");
-                    System.out.println(ex.getMessage());
-                }
-            }
-
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (Exception ex) {
-                    System.out.println("Error closing 'preparedStatement' that was opened");
-                    System.out.println(ex.getMessage());
-                }
-            }
-
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (Exception ex) {
-                    System.out.println("Error closing an connection that was opened");
-                    System.out.println(ex.getMessage());
-                }
-            }
         }
     }
 }
